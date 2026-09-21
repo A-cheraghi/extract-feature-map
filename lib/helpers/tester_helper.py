@@ -6,7 +6,11 @@ import torch
 from lib.helpers.save_helper import load_checkpoint
 from lib.helpers.decode_helper import extract_dets_from_outputs
 from lib.helpers.decode_helper import decode_detections
+###############################################################################################################################################################
+from save_crop_features import CropFeatureSaver
+###############################################################################################################################################################
 import time
+
 
 
 class Tester(object):
@@ -22,6 +26,10 @@ class Tester(object):
         self.logger = logger
         self.train_cfg = train_cfg
         self.model_name = model_name
+        ###############################################################################################################################################################
+        self.crop_saver = CropFeatureSaver('/content/val/crop')
+        ###############################################################################################################################################################
+
 
     def test(self):
         assert self.cfg['mode'] in ['single', 'all']
@@ -90,6 +98,9 @@ class Tester(object):
             calibs = [self.dataloader.dataset.get_calib(index) for index in info['img_id']]
             info = {key: val.detach().cpu().numpy() for key, val in info.items()}
             cls_mean_size = self.dataloader.dataset.cls_mean_size
+            ###############################################################################################################################################################
+            self.crop_saver.save_batch(outputs, dets, info, calibs, cls_mean_size)
+            ###############################################################################################################################################################
             dets = decode_detections(
                 dets=dets,
                 info=info,

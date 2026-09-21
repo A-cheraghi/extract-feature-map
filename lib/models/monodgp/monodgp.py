@@ -155,7 +155,10 @@ class MonoDGP(nn.Module):
 
         # region enhancement
         enhanced_srcs, region_probs, seg_embed = self.region_head(srcs)
-
+        ############################################################################################################################################################
+        feat_for_crop = srcs[0]
+        prob_for_crop = region_probs[0]        
+        ############################################################################################################################################################
         if self.training:
             query_embeds = self.query_embed.weight
         else:
@@ -288,7 +291,11 @@ class MonoDGP(nn.Module):
         if self.aux_loss:
             out['aux_outputs'] = self._set_aux_loss(
                 outputs_class, outputs_coord, outputs_3d_dim, outputs_angle, outputs_depth) 
-        
+
+        ############################################################################################################################################################
+        out['feat_map'] = feat_for_crop      # (B, 256, H/8, W/8)
+        out['region_prob'] = prob_for_crop   # (B, 1, H/8, W/8)
+        ############################################################################################################################################################
         return out
 
     @torch.jit.unused
