@@ -7,7 +7,7 @@ from lib.helpers.save_helper import load_checkpoint
 from lib.helpers.decode_helper import extract_dets_from_outputs
 from lib.helpers.decode_helper import decode_detections
 ###############################################################################################################################################################
-from save_crop_features import CropFeatureSaver
+from lib.helpers.save_crop_features import CropFeatureSaver
 ###############################################################################################################################################################
 import time
 
