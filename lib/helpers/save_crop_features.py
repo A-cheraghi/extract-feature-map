@@ -39,6 +39,8 @@ import numpy as np
 import torch
 from torchvision.ops import roi_align
 
+from lib.helpers.decode_helper import get_heading_angle
+
 
 # =====================================================================
 # SETTINGS
@@ -144,20 +146,22 @@ class CropFeatureSaver(object):
                 h3, w3, l3 = float(dims[0]), float(dims[1]), float(dims[2])
 
                 # --- 3D location, exactly as decode_detections ----------
-                depth = float(d[C_DEPTH])
-                x3d = d[C_XS3D] * W_img
-                y3d = d[C_YS3D] * H_img
+                # img_to_rect calls .reshape on its arguments, so they must be
+                # numpy arrays. A plain python float has no .reshape.
+                depth = np.asarray(d[C_DEPTH], dtype=np.float32).reshape(1)
+                x3d = np.asarray(d[C_XS3D] * W_img, dtype=np.float32).reshape(1)
+                y3d = np.asarray(d[C_YS3D] * H_img, dtype=np.float32).reshape(1)
                 loc = calib.img_to_rect(x3d, y3d, depth).reshape(-1)
                 loc[1] += h3 / 2.0        # now loc is the box CENTRE
+                depth = float(depth[0])
 
                 # --- heading, exactly as decode_detections --------------
-                from lib.helpers.decode_helper import get_heading_angle
                 alpha = get_heading_angle(d[C_HEADING])
-                ry = calib.alpha2ry(alpha, x)
+                ry = float(np.asarray(calib.alpha2ry(alpha, x)).reshape(-1)[0])
 
                 # --- project the 3D box ---------------------------------
                 corners = box3d_corners_np(h3, w3, l3,
-                                           loc[0], loc[1], loc[2], float(ry))
+                                           loc[0], loc[1], loc[2], ry)
                 u, v = project_np(corners, P2)
                 p3d = np.array([u.min(), v.min(), u.max(), v.max()])
 
